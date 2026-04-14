@@ -1,7 +1,7 @@
 const loadedPreviews = new Set<string>();
 const loadedFull = new Set<string>();
 
-const CACHE_BASE = './gfonts/css';
+const CACHE_BASE = import.meta.env.BASE_URL + 'gfonts/css';
 const CDN_BASE = 'https://fonts.googleapis.com/css2';
 
 let cacheManifest: Set<string> | null = null;
@@ -25,7 +25,7 @@ function loadManifest(): Promise<Set<string>> {
     if (manifestPromise) return manifestPromise;
     manifestPromise = (async () => {
         try {
-            const res = await fetch('./gfonts/manifest.json');
+            const res = await fetch(import.meta.env.BASE_URL + 'gfonts/manifest.json');
             if (!res.ok) throw new Error();
             const data = await res.json();
             cacheManifest = new Set(data.fonts.map((f: { slug: string }) => f.slug));
