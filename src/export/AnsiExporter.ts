@@ -39,12 +39,17 @@ export class AnsiExporter {
                 const cell = bgLayer.cells[r][c];
                 const char = cell.char || ' ';
 
-                const bgChanged = !currentBg || currentBg[0] !== cell.bg[0] || currentBg[1] !== cell.bg[1] || currentBg[2] !== cell.bg[2];
+                // A layer promoted to index 0 (after the original bg was deleted) may still
+                // carry transparent bg sentinel values [-1,-1,-1]. Resolve to black here so
+                // we never emit invalid negative color components into the escape sequence.
+                const bg: Color = cell.bg[0] === -1 ? [0, 0, 0] : cell.bg;
+
+                const bgChanged = !currentBg || currentBg[0] !== bg[0] || currentBg[1] !== bg[1] || currentBg[2] !== bg[2];
                 const fgChanged = !currentFg || currentFg[0] !== cell.fg[0] || currentFg[1] !== cell.fg[1] || currentFg[2] !== cell.fg[2];
 
                 if (bgChanged) {
-                    out += `\x1b[48;2;${cell.bg[0]};${cell.bg[1]};${cell.bg[2]}m`;
-                    currentBg = cell.bg;
+                    out += `\x1b[48;2;${bg[0]};${bg[1]};${bg[2]}m`;
+                    currentBg = bg;
                 }
                 if (char !== ' ' && fgChanged) {
                     out += `\x1b[38;2;${cell.fg[0]};${cell.fg[1]};${cell.fg[2]}m`;
