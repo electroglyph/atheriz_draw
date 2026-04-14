@@ -139,6 +139,17 @@ export class ImageImportDialog {
             if (control.tagName !== 'SPAN') {
                 div.appendChild(control);
             }
+
+            if (key === 'symbols') {
+                const helpText = document.createElement('div');
+                helpText.style.fontSize = '10px';
+                helpText.style.color = '#8bb';
+                helpText.style.marginTop = '4px';
+                helpText.style.lineHeight = '1.3';
+                helpText.innerText = 'Classes: all, none, space, solid, stipple, block, border, diagonal, dot, quad, half, hhalf, vhalf, inverted, braille, technical, geometric, ascii, legacy, sextant, wedge, wide, narrow.\nUse + to combine, - to subtract.';
+                div.appendChild(helpText);
+            }
+
             this.optionsContainer.appendChild(div);
         }
     }
