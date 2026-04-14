@@ -2,6 +2,8 @@ import { GOOGLE_FONTS, GOOGLE_FONT_CATEGORIES, GoogleFontCategory } from '../dat
 import { loadFontPreview, preloadManifest } from '../utils/googleFontLoader';
 
 const PAGE_SIZE = 40;
+// Max concurrent preview loads to avoid flooding the dev server
+const PREVIEW_CONCURRENCY = 4;
 
 const CATEGORY_TABS: { label: string; category: GoogleFontCategory | 'all' }[] = [
     { label: 'All', category: 'all' },
@@ -23,6 +25,12 @@ export class GoogleFontPicker {
     private observer: IntersectionObserver;
     private sentinel: HTMLElement;
 
+    /** IntersectionObserver that lazily loads preview fonts when items scroll into view */
+    private fontObserver: IntersectionObserver;
+    /** Queue of font families waiting to be preview-loaded */
+    private previewQueue: string[] = [];
+    private previewInFlight = 0;
+
     constructor(onSelect: (family: string) => void) {
         this.onSelect = onSelect;
 
@@ -41,6 +49,17 @@ export class GoogleFontPicker {
                 this.renderMore();
             }
         }, { root: this.listContainer, rootMargin: '200px' });
+
+        // Lazy font loader: fires only when a font item enters the viewport
+        this.fontObserver = new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+                if (entry.isIntersecting) {
+                    const family = (entry.target as HTMLElement).dataset.family;
+                    if (family) this.enqueuePreview(family);
+                    this.fontObserver.unobserve(entry.target);
+                }
+            }
+        }, { root: this.listContainer, rootMargin: '100px' });
     }
 
     private buildTabs() {
@@ -121,17 +140,47 @@ export class GoogleFontPicker {
             const item = document.createElement('div');
             item.className = 'gfp-item';
             item.textContent = f.family;
-            item.style.fontFamily = `"${f.family}", sans-serif`;
+            // Font is applied via CSS once loaded; fontFamily is set after load to avoid
+            // the browser trying to shape text with an unloaded font immediately.
+            item.dataset.family = f.family;
             item.addEventListener('click', () => {
                 this.onSelect(f.family);
                 this.close();
             });
-            loadFontPreview(f.family);
+            // Observe for lazy font loading instead of loading eagerly
+            this.fontObserver.observe(item);
             fragment.appendChild(item);
         }
 
         this.listContainer.insertBefore(fragment, this.sentinel);
         this.renderedCount = end;
+    }
+
+    /**
+     * Enqueue a font for preview loading, respecting the concurrency limit
+     * so we don't flood the dev server with dozens of simultaneous requests.
+     */
+    private enqueuePreview(family: string): void {
+        this.previewQueue.push(family);
+        this.drainPreviewQueue();
+    }
+
+    private drainPreviewQueue(): void {
+        while (this.previewInFlight < PREVIEW_CONCURRENCY && this.previewQueue.length > 0) {
+            const family = this.previewQueue.shift()!;
+            this.previewInFlight++;
+            // loadFontPreview is fire-and-forget (void); use a small setTimeout
+            // to yield back to the browser between loads.
+            Promise.resolve().then(() => {
+                loadFontPreview(family);
+                // Once the stylesheet is injected, apply fontFamily to the item element
+                const item = this.listContainer.querySelector(`[data-family="${CSS.escape(family)}"]`) as HTMLElement | null;
+                if (item) item.style.fontFamily = `"${family}", sans-serif`;
+            }).finally(() => {
+                this.previewInFlight--;
+                this.drainPreviewQueue();
+            });
+        }
     }
 
     public open() {
@@ -147,5 +196,10 @@ export class GoogleFontPicker {
 
     public close() {
         this.modal.classList.add('hidden');
+        // Stop observing all items immediately so pending preview loads are
+        // not triggered after the picker is dismissed, preventing server load.
+        this.fontObserver.disconnect();
+        this.previewQueue.length = 0;
+        this.previewInFlight = 0;
     }
 }

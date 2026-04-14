@@ -20,6 +20,7 @@ export class TextToolDialog {
     private btnCancel: HTMLButtonElement;
     private btnConfirm: HTMLButtonElement;
     private btnGoogleFonts: HTMLButtonElement;
+    private alignSelect: HTMLSelectElement;
     private chafaOptionsContainer!: HTMLElement;
 
     private userConfig!: ChafaConfig;
@@ -50,6 +51,7 @@ export class TextToolDialog {
         this.btnCancel = document.getElementById('btn-text-cancel') as HTMLButtonElement;
         this.btnConfirm = document.getElementById('btn-text-confirm') as HTMLButtonElement;
         this.btnGoogleFonts = document.getElementById('text-tool-google-fonts-btn') as HTMLButtonElement;
+        this.alignSelect = document.getElementById('text-tool-align') as HTMLSelectElement;
         this.chafaOptionsContainer = document.getElementById('text-chafa-options-container')!;
 
         this.googleFontPicker = new GoogleFontPicker((family) => this.selectGoogleFont(family));
@@ -114,6 +116,7 @@ export class TextToolDialog {
 
         this.fontSelect.addEventListener('focus', () => this.loadSystemFonts());
         this.btnGoogleFonts.addEventListener('click', () => this.googleFontPicker.open());
+        this.alignSelect.addEventListener('change', () => this.schedulePreview());
     }
 
     private previewTimer: ReturnType<typeof setTimeout> | null = null;
@@ -141,6 +144,7 @@ export class TextToolDialog {
 
             const fontFamilies = this.fontSelect.value || 'Arial';
             const fontStyle = this.styleSelect.value || 'normal';
+            const align = (this.alignSelect.value || 'left') as CanvasTextAlign;
             let stretch = parseInt(this.stretchInput.value, 10) / 100;
             if (isNaN(stretch) || stretch <= 0) stretch = 1;
 
@@ -152,27 +156,46 @@ export class TextToolDialog {
             try { await document.fonts.load(fontStr, text); } catch (_) {}
             await document.fonts.ready;
 
-            const tempCtx = this.previewCanvas.getContext('2d')!;
-            tempCtx.font = fontStr;
-            this.previewCanvas.width = 800;
-            this.previewCanvas.height = 200;
+            // Split into lines so multi-line input renders as stacked rows
+            const lines = text.split('\n');
+            const lineHeight = Math.round(fontSize * 1.2);
+            const canvasW = 1200;
+            const canvasH = Math.max(200, lineHeight * lines.length + 40);
+
+            this.previewCanvas.width = canvasW;
+            this.previewCanvas.height = canvasH;
             const ctx = this.previewCanvas.getContext('2d')!;
-            
+
             const bgColor = `rgb(${this.appState.bgColor[0]},${this.appState.bgColor[1]},${this.appState.bgColor[2]})`;
             const fgColor = `rgb(${this.appState.fgColor[0]},${this.appState.fgColor[1]},${this.appState.fgColor[2]})`;
             ctx.fillStyle = bgColor;
-            ctx.fillRect(0, 0, 800, 200);
+            ctx.fillRect(0, 0, canvasW, canvasH);
 
-            ctx.save();
-            ctx.translate(400, 100);
-            ctx.scale(stretch, 1);
-            
             ctx.font = fontStr;
             ctx.fillStyle = fgColor;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            ctx.textBaseline = 'top';
 
-            ctx.fillText(text, 0, 0);
+            // Determine x anchor position based on alignment
+            let anchorX: number;
+            if (align === 'center') {
+                anchorX = canvasW / 2;
+            } else if (align === 'right') {
+                anchorX = canvasW - 20;
+            } else {
+                anchorX = 20;
+            }
+
+            ctx.save();
+            // Apply horizontal stretch around the anchor point
+            ctx.translate(anchorX, 0);
+            ctx.scale(stretch, 1);
+            ctx.translate(-anchorX / stretch, 0);
+
+            ctx.textAlign = align;
+
+            for (let i = 0; i < lines.length; i++) {
+                ctx.fillText(lines[i], anchorX / stretch, 20 + i * lineHeight);
+            }
             ctx.restore();
         } catch (err) {
             console.error('Error drawing preview:', err);
