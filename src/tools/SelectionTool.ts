@@ -78,8 +78,11 @@ export class SelectionTool implements Tool {
     }
 
     private getInkColor(cell: Cell): Color {
-        const fgLum = luminance(cell.fg);
         const hasBg = cell.bg[0] !== -1;
+        if (!cell.char || cell.char.trim() === '') {
+            return hasBg ? [...cell.bg] as Color : [0, 0, 0];
+        }
+        const fgLum = luminance(cell.fg);
         const bgLum = hasBg ? luminance(cell.bg) : -1;
         return (hasBg && bgLum > fgLum) ? [...cell.bg] as Color : [...cell.fg] as Color;
     }
@@ -312,24 +315,21 @@ export class SelectionTool implements Tool {
         const composite = ctx.state.getCompositeCell(cell.x, cell.y);
         if (!composite) return new Set([key(cell.x, cell.y)]);
 
-        const ch = composite.char;
-        const empty = !ch || ch.trim() === '';
-        if (empty) return new Set([key(cell.x, cell.y)]);
+        const ch = composite.char || ' ';
+        const isSpace = ch.trim() === '';
 
         let category: string | null = null;
-        if (LIGHT_ROUNDED_CHARS.has(ch)) {
-            category = 'light-rounded';
-        } else if (DOUBLE_CHARS.has(ch)) {
-            category = 'double';
-        } else if (HEAVY_CHARS.has(ch)) {
-            category = 'heavy';
+        if (!isSpace) {
+            if (LIGHT_ROUNDED_CHARS.has(ch)) {
+                category = 'light-rounded';
+            } else if (DOUBLE_CHARS.has(ch)) {
+                category = 'double';
+            } else if (HEAVY_CHARS.has(ch)) {
+                category = 'heavy';
+            }
         }
 
-        const fgLum = luminance(composite.fg);
-        const hasBg = composite.bg[0] !== -1;
-        const bgLum = hasBg ? luminance(composite.bg) : -1;
-        const inkIsBg = hasBg && bgLum > fgLum;
-        const inkColor: Color = inkIsBg ? [...composite.bg] as Color : [...composite.fg] as Color;
+        const inkColor = this.getInkColor(composite);
 
         const visited = new Set<string>();
         const queue: Point[] = [{ x: cell.x, y: cell.y }];
@@ -338,23 +338,24 @@ export class SelectionTool implements Tool {
         const match = (c: number, r: number): boolean => {
             const comp = ctx.state.getCompositeCell(c, r);
             if (!comp) return false;
-            if (!comp.char || comp.char.trim() === '') return false;
+            
+            const compCh = comp.char || ' ';
+            const compIsSpace = compCh.trim() === '';
 
-            if (category) {
-                if (category === 'light-rounded') return LIGHT_ROUNDED_CHARS.has(comp.char);
-                if (category === 'double') return DOUBLE_CHARS.has(comp.char);
-                if (category === 'heavy') return HEAVY_CHARS.has(comp.char);
-                return false;
+            if (isSpace) {
+                if (!compIsSpace) return false;
+            } else {
+                if (compIsSpace) return false;
+                if (category) {
+                    if (category === 'light-rounded') return LIGHT_ROUNDED_CHARS.has(compCh);
+                    if (category === 'double') return DOUBLE_CHARS.has(compCh);
+                    if (category === 'heavy') return HEAVY_CHARS.has(compCh);
+                    return false;
+                }
+                if (compCh !== ch) return false;
             }
 
-            if (comp.char !== ch) return false;
-
-            const cFgLum = luminance(comp.fg);
-            const cHasBg = comp.bg[0] !== -1;
-            const cBgLum = cHasBg ? luminance(comp.bg) : -1;
-            const cInkIsBg = cHasBg && cBgLum > cFgLum;
-            const cInkColor: Color = cInkIsBg ? [...comp.bg] as Color : [...comp.fg] as Color;
-
+            const cInkColor = this.getInkColor(comp);
             return cInkColor[0] === inkColor[0] && cInkColor[1] === inkColor[1] && cInkColor[2] === inkColor[2];
         };
 
@@ -391,7 +392,6 @@ export class SelectionTool implements Tool {
         const match = (c: number, r: number): boolean => {
             const comp = ctx.state.getCompositeCell(c, r);
             if (!comp) return false;
-            if (!comp.char || comp.char.trim() === '') return false;
 
             const compInk = this.getInkColor(comp);
 
