@@ -14,6 +14,7 @@ import { ToolContext } from './tools/Tool';
 import { GradientTool } from './tools/GradientTool';
 import { FillTool } from './tools/FillTool';
 import { SelectionTool } from './tools/SelectionTool';
+import { EyedropperTool } from './tools/EyedropperTool';
 import { MoveTool } from './tools/MoveTool';
 import { RotateTool } from './tools/RotateTool';
 
@@ -57,10 +58,11 @@ function initApp() {
         bgColor: [0, 0, 0],
         fontFamily: 'Unifont',
         gradientStops: [[0, 0, 0] as any, [255, 255, 255] as any],
-        selectMode: 'single',
+        selectMode: 'rectangle',
         rotateMode: 'cw90',
         fillMode: 'brush',
-        lineDiagonal: false
+        lineDiagonal: false,
+        eyedropperTarget: 'fg-fg'
     };
 
     const undoStack = new UndoStack();
@@ -96,6 +98,7 @@ function initApp() {
     toolManager.addTool('text', new TextTool(() => textToolDialog.open()));
     toolManager.addTool('gradient', new GradientTool());
     toolManager.addTool('fill', new FillTool());
+    toolManager.addTool('eyedropper', new EyedropperTool());
     const selectionTool = new SelectionTool();
     toolManager.addTool('select', selectionTool);
     toolManager.addTool('move', new MoveTool());

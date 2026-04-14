@@ -18,6 +18,7 @@ export class Toolbar {
     private btnLine: HTMLButtonElement;
     private btnGradient: HTMLButtonElement;
     private btnFill: HTMLButtonElement;
+    private btnEyedropper: HTMLButtonElement;
     private btnSelect: HTMLButtonElement;
     private btnMove: HTMLButtonElement;
     private btnRotate: HTMLButtonElement;
@@ -28,6 +29,7 @@ export class Toolbar {
     private lineModeSel: HTMLSelectElement;
     private gradientTargetSel: HTMLSelectElement;
     private fillModeSel: HTMLSelectElement;
+    private eyedropperTargetSel: HTMLSelectElement;
     private selectModeSel: HTMLSelectElement;
     private rotateModeSel: HTMLSelectElement;
 
@@ -66,6 +68,7 @@ export class Toolbar {
         this.btnLine = document.getElementById('tool-line') as HTMLButtonElement;
         this.btnGradient = document.getElementById('tool-gradient') as HTMLButtonElement;
         this.btnFill = document.getElementById('tool-fill') as HTMLButtonElement;
+        this.btnEyedropper = document.getElementById('tool-eyedropper') as HTMLButtonElement;
         this.btnSelect = document.getElementById('tool-select') as HTMLButtonElement;
         this.btnMove = document.getElementById('tool-move') as HTMLButtonElement;
         this.btnRotate = document.getElementById('tool-rotate') as HTMLButtonElement;
@@ -87,6 +90,9 @@ export class Toolbar {
 
         this.fillModeSel = document.getElementById('fill-mode-select') as HTMLSelectElement;
         this.fillModeSel.value = this.appState.fillMode;
+
+        this.eyedropperTargetSel = document.getElementById('eyedropper-target-select') as HTMLSelectElement;
+        this.eyedropperTargetSel.value = this.appState.eyedropperTarget;
 
         this.selectModeSel = document.getElementById('select-mode-select') as HTMLSelectElement;
         this.selectModeSel.value = this.appState.selectMode;
@@ -117,6 +123,7 @@ export class Toolbar {
             { id: 'line', btn: this.btnLine },
             { id: 'gradient', btn: this.btnGradient },
             { id: 'fill', btn: this.btnFill },
+            { id: 'eyedropper', btn: this.btnEyedropper },
             { id: 'select', btn: this.btnSelect },
             { id: 'move', btn: this.btnMove },
             { id: 'rotate', btn: this.btnRotate }
@@ -177,6 +184,12 @@ export class Toolbar {
         this.fillModeSel.addEventListener('change', (e) => {
             this.appState.fillMode = (e.target as HTMLSelectElement).value as FillMode;
             this.appState.activeToolId = 'fill';
+            this.updateToolButtons();
+        });
+
+        this.eyedropperTargetSel.addEventListener('change', (e) => {
+            this.appState.eyedropperTarget = (e.target as HTMLSelectElement).value as any;
+            this.appState.activeToolId = 'eyedropper';
             this.updateToolButtons();
         });
 
@@ -248,6 +261,7 @@ export class Toolbar {
         this.btnLine.classList.remove('active');
         this.btnGradient.classList.remove('active');
         this.btnFill.classList.remove('active');
+        this.btnEyedropper.classList.remove('active');
         this.btnSelect.classList.remove('active');
         this.btnMove.classList.remove('active');
         this.btnRotate.classList.remove('active');
@@ -262,12 +276,13 @@ export class Toolbar {
             case 'line': this.btnLine.classList.add('active'); break;
             case 'gradient': this.btnGradient.classList.add('active'); break;
             case 'fill': this.btnFill.classList.add('active'); break;
+            case 'eyedropper': this.btnEyedropper.classList.add('active'); break;
             case 'select': this.btnSelect.classList.add('active'); break;
             case 'move': this.btnMove.classList.add('active'); break;
             case 'rotate': this.btnRotate.classList.add('active'); break;
         }
 
-        if (this.appState.activeToolId !== 'select' && this.appState.activeToolId !== 'move' && this.appState.activeToolId !== 'rotate' && this.appState.activeToolId !== 'fill' && this.clearSelectionCallback) {
+        if (this.appState.activeToolId !== 'select' && this.appState.activeToolId !== 'move' && this.appState.activeToolId !== 'rotate' && this.appState.activeToolId !== 'fill' && this.appState.activeToolId !== 'eyedropper' && this.clearSelectionCallback) {
             this.clearSelectionCallback();
         }
 
@@ -293,6 +308,12 @@ export class Toolbar {
             document.body.classList.add('tool-rotate-active');
         } else {
             document.body.classList.remove('tool-rotate-active');
+        }
+
+        if (this.appState.activeToolId === 'eyedropper') {
+            document.body.classList.add('tool-eyedropper-active');
+        } else {
+            document.body.classList.remove('tool-eyedropper-active');
         }
     }
 

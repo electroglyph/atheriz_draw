@@ -15,6 +15,7 @@ export type RectMode = "light" | "rounded" | "double" | "custom";
 export type OvalMode = "light" | "rounded" | "double" | "circle" | "custom";
 export type LineMode = "light" | "rounded" | "double" | "heavy" | "custom";
 export type GradientTarget = "foreground" | "background" | "both" | "luminance" | "inverse-luminance";
+export type EyedropperTarget = "fg-fg" | "fg-bg" | "bg-fg" | "bg-bg";
 export type SelectMode = "single" | "rectangle" | "lasso" | "magic" | "color-match" | "color-fuzzy";
 export type RotateMode = "cw90" | "ccw90" | "flip-h" | "flip-v" | "free";
 export type FillMode = "brush" | "foreground" | "background" | "gradient";
@@ -43,6 +44,7 @@ export interface AppState {
   rotateMode: RotateMode;
   fillMode: FillMode;
   lineDiagonal: boolean;
+  eyedropperTarget: EyedropperTarget;
 }
 
 export interface Point {

@@ -87,14 +87,23 @@
           </div>
           <div class="separator"></div>
           <div class="tool-with-mode">
+            <button id="tool-eyedropper" class="tool-btn" title="Eyedropper">⌖ Eyedropper</button>
+            <select id="eyedropper-target-select" title="Eyedropper Target">
+              <option value="fg-fg">FG -&gt; FG</option>
+              <option value="fg-bg">FG -&gt; BG</option>
+              <option value="bg-fg">BG -&gt; FG</option>
+              <option value="bg-bg">BG -&gt; BG</option>
+            </select>
+          </div>
+          <div class="tool-with-mode">
             <button id="tool-select" class="tool-btn" title="Select">☝ Select</button>
             <select id="select-mode-select" title="Select Mode">
-              <option value="single">Single</option>
               <option value="rectangle">Rectangle</option>
               <option value="lasso">Lasso</option>
               <option value="magic">Magic</option>
               <option value="color-match">Color Match</option>
               <option value="color-fuzzy">Color Fuzzy</option>
+              <option value="single">Single</option>
             </select>
           </div>
           <button id="tool-move" class="tool-btn" title="Move">✋ Move</button>

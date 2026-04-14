@@ -28,6 +28,13 @@ export class ColorPicker {
 
         this.render();
         this.updateUI();
+
+        window.addEventListener('colorPicked', (e: any) => {
+            if (e.detail.isFg === this.isForeground) {
+                this.setColor(e.detail.color);
+                this.commitToHistory(e.detail.color);
+            }
+        });
     }
 
     private getColor(): Color {
