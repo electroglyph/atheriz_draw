@@ -28,7 +28,7 @@ import { TextToolDialog } from './ui/TextToolDialog';
 import { ColorAdjustDialog } from './ui/ColorAdjustDialog';
 import { applyColorAdjustments, ColorAdjustOptions } from './utils/colors';
 import { convertImageToAnsi } from './utils/imageLoader';
-import { parseAnsiToCells, parseAnsiToState } from './utils/ansiParser';
+import { parseAnsiToCells, parseAnsiToState, detectAnsiDimensions } from './utils/ansiParser';
 import { AnsiExporter } from './export/AnsiExporter';
 import { CharMapDialog } from './ui/CharMapDialog';
 import { CHAR_GROUPS } from './utils/characters';
@@ -243,10 +243,13 @@ function initApp() {
             const text = e.target?.result as string;
             if (!text) return;
             try {
-                const newState = await parseAnsiToState(text, canvasState.width, canvasState.height);
+                // Detect the file's true dimensions so the canvas is never clipped
+                const { width, height } = detectAnsiDimensions(text);
+                const newState = await parseAnsiToState(text, width, height);
                 undoStack.push(canvasState);
                 canvasState = newState;
                 context.state = canvasState;
+                undoStack.setCurrentState(canvasState);
                 renderer.updateState(canvasState);
                 layerManager.updateState(canvasState);
                 syncTextToolDialog();
@@ -342,4 +345,23 @@ function initApp() {
             updateFontMetrics();
         }
     });
+
+    // Auto-load art.ans from the public directory on startup if it exists
+    (async () => {
+        try {
+            const res = await fetch('./art.ans');
+            if (!res.ok) return;
+            const text = await res.text();
+            const { width, height } = detectAnsiDimensions(text);
+            const newState = await parseAnsiToState(text, width, height);
+            canvasState = newState;
+            context.state = canvasState;
+            undoStack.setCurrentState(canvasState);
+            renderer.updateState(canvasState);
+            layerManager.updateState(canvasState);
+            syncTextToolDialog();
+        } catch {
+            // No art.ans present or fetch failed — start with a blank canvas
+        }
+    })();
 }

@@ -50,6 +50,26 @@ function writeSync(term: Terminal, data: string): Promise<void> {
     return new Promise(resolve => term.write(data, resolve));
 }
 
+/**
+ * Reads the xterm window-resize escape `\x1b[8;rows;colst` written by AnsiExporter
+ * to recover the exact canvas dimensions. Falls back to counting visible rows/cols
+ * for ANSI files produced by other tools.
+ */
+export function detectAnsiDimensions(ansiString: string): { width: number; height: number } {
+    // Our exporter always starts with \x1b[8;<rows>;<cols>t
+    const sizeMatch = ansiString.match(/^\x1b\[8;(\d+);(\d+)t/);
+    if (sizeMatch) {
+        return { width: parseInt(sizeMatch[2], 10), height: parseInt(sizeMatch[1], 10) };
+    }
+
+    // Fallback: strip ANSI escapes and measure the plain-text content
+    const stripped = ansiString.replace(/\x1b\[[\d;]*[a-zA-Z]/g, '');
+    const lines = stripped.split(/\r?\n/);
+    const height = Math.max(1, lines.length);
+    const width = Math.max(1, ...lines.map(l => l.length));
+    return { width, height };
+}
+
 export async function parseAnsiToCells(ansiString: string, canvasWidth: number, canvasHeight?: number): Promise<Cell[]> {
     const rows = canvasHeight ?? Math.max(1, Math.ceil(ansiString.length / canvasWidth));
     const term = new Terminal({ cols: canvasWidth, rows, scrollback: 0, allowProposedApi: true });
