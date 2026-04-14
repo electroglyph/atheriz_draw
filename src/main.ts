@@ -22,6 +22,7 @@ import { ColorPicker } from './ui/ColorPicker';
 import { Toolbar } from './ui/Toolbar';
 import { SidebarResizer } from './ui/SidebarResizer';
 import { NewCanvasDialog } from './ui/NewCanvasDialog';
+import { ResizeCanvasDialog } from './ui/ResizeCanvasDialog';
 import { ImageImportDialog } from './ui/ImageImportDialog';
 import { TextToolDialog } from './ui/TextToolDialog';
 import { ColorAdjustDialog } from './ui/ColorAdjustDialog';
@@ -182,6 +183,15 @@ function initApp() {
         
         context.state = canvasState;
         undoStack.setCurrentState(canvasState);
+        renderer.updateState(canvasState);
+        layerManager.updateState(canvasState);
+        syncTextToolDialog();
+    });
+
+    new ResizeCanvasDialog(() => canvasState, (w, h) => {
+        undoStack.push(canvasState);
+        canvasState.resize(w, h);
+        
         renderer.updateState(canvasState);
         layerManager.updateState(canvasState);
         syncTextToolDialog();

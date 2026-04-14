@@ -200,4 +200,63 @@ export class CanvasState {
             listener();
         }
     }
+
+    public resize(newWidth: number, newHeight: number) {
+        if (newWidth === this.width && newHeight === this.height) return;
+
+        for (let i = 0; i < this.layers.length; i++) {
+            const layer = this.layers[i];
+            const isBgLayer = (i === 0);
+            const defaultBg = isBgLayer ? [0, 0, 0] : [-1, -1, -1];
+
+            const newCells = Array.from({ length: newHeight }, () =>
+                Array.from({ length: newWidth }, () => ({
+                    char: '',
+                    fg: [204, 204, 204] as [number, number, number],
+                    bg: defaultBg as [number, number, number]
+                }))
+            );
+
+            for (let r = 0; r < newHeight; r++) {
+                for (let c = 0; c < newWidth; c++) {
+                    if (r < this.height && c < this.width) {
+                        const src = layer.cells[r][c];
+                        newCells[r][c] = {
+                            char: src.char,
+                            fg: [...src.fg] as [number, number, number],
+                            bg: [...src.bg] as [number, number, number],
+                            bold: src.bold,
+                            italic: src.italic,
+                            underline: src.underline
+                        };
+                    }
+                }
+            }
+
+            if (layer.overflowCells) {
+                for (const [key, cell] of layer.overflowCells.entries()) {
+                    const [cStr, rStr] = key.split(',');
+                    const c = Number(cStr);
+                    const r = Number(rStr);
+                    if (c >= 0 && c < newWidth && r >= 0 && r < newHeight) {
+                        newCells[r][c] = {
+                            char: cell.char,
+                            fg: [...cell.fg] as [number, number, number],
+                            bg: [...cell.bg] as [number, number, number],
+                            bold: cell.bold,
+                            italic: cell.italic,
+                            underline: cell.underline
+                        };
+                        layer.overflowCells.delete(key);
+                    }
+                }
+            }
+
+            layer.cells = newCells;
+        }
+
+        this.width = newWidth;
+        this.height = newHeight;
+        this.notify();
+    }
 }

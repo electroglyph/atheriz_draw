@@ -15,6 +15,7 @@
       <!-- Toolbar -->
       <header id="toolbar">
         <button id="btn-new" title="New Canvas">📄 New</button>
+        <button id="btn-resize" title="Resize Canvas">📐 Resize</button>
         <button id="btn-load-image" title="Load Image as ANSI">🖼️ Load Image</button>
         <input type="file" id="image-upload" accept="image/*" style="display:none;" />
         <div class="separator"></div>
@@ -196,6 +197,22 @@
         <div class="modal-actions">
           <button id="btn-new-cancel">Cancel</button>
           <button id="btn-new-confirm" class="primary">Create</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resize Canvas Modal -->
+    <div id="resize-canvas-modal" class="modal hidden">
+      <div class="modal-content" style="width: 300px;">
+        <h2>Resize Canvas</h2>
+        <div class="custom-size">
+          <label>W: <input type="number" id="resize-width" value="80" min="1"></label>
+          <label>H: <input type="number" id="resize-height" value="24" min="1"></label>
+        </div>
+        <p style="font-size: 0.85em; color: #888; margin-top: 10px;">Layers will be expanded or cropped from the bottom-right.</p>
+        <div class="modal-actions" style="margin-top: 16px;">
+          <button id="btn-resize-cancel">Cancel</button>
+          <button id="btn-resize-confirm" class="primary">Resize</button>
         </div>
       </div>
     </div>
