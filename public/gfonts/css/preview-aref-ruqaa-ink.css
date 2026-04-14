@@ -2,7 +2,7 @@
   font-family: 'Aref Ruqaa Ink';
   font-style: normal;
   font-weight: 400;
-  src: url(/gfonts/f/aref-ruqaa-ink-preview.woff2) format('woff2');
+  src: url(../f/aref-ruqaa-ink-preview.woff2) format('woff2');
 }
 body {
   --google-font-color-arefruqaaink:colrv1;

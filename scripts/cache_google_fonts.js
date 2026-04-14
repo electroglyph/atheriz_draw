@@ -164,7 +164,7 @@ async function cacheFont(family, mode) {
             totalBytes += fs.statSync(localPath).size;
         }
 
-        replacements.push({ from: fontUrl, to: `/gfonts/f/${fileName}` });
+        replacements.push({ from: fontUrl, to: `../f/${fileName}` });
     }
 
     for (const { from, to } of replacements) {
