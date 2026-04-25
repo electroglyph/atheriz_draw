@@ -289,9 +289,9 @@ export class LineTool implements Tool {
 
                 // Box corners (Middle-to-Middle)
                 case 'ML-MT': return charMap.br; // ┘
-                case 'ML-MB': return charMap.tr; // ┐
+                case 'MB-ML': return charMap.tr; // ┐  (was 'ML-MB' — wrong sorted key)
                 case 'MR-MT': return charMap.bl; // └
-                case 'MR-MB': return charMap.tl; // ┌
+                case 'MB-MR': return charMap.tl; // ┌  (was 'MR-MB' — wrong sorted key)
 
                 // Perfect 45° diagonals (Corner-to-Corner)
                 case 'LL-UR': return '╱';
@@ -310,7 +310,7 @@ export class LineTool implements Tool {
                 // Off-angle Corner-to-Corner (3-point bridge characters from U+1FBD8)
                 // These eliminate the 0.5-cell gap in sharp "V" or ">" turns.
                 case 'UL-UR': return '🯘'; // Upper-Left to Upper-Right via Center
-                case 'UR-LR': return '🯙'; // Upper-Right to Lower-Right via Center
+                case 'LR-UR': return '🯙'; // Upper-Right to Lower-Right via Center (was 'UR-LR' — wrong sorted key)
                 case 'LL-LR': return '🯚'; // Lower-Left to Lower-Right via Center
                 case 'LL-UL': return '🯛'; // Lower-Left to Upper-Left via Center
 
@@ -322,13 +322,13 @@ export class LineTool implements Tool {
                 // Fallbacks prioritise the corner connection so the line never
                 // appears to stop short at a junction or turn.
                 case 'LL-ML': return '🯛'; // connects LL (and UL)
-                case 'LL-MB': return '🯛'; // connects LL (and UL)
+                case 'LL-MB': return '🯚'; // bottom-edge fallback for LL-MB (was 🯛)
                 case 'LR-MR': return '🯙'; // connects LR (and UR)
                 case 'LR-MB': return '🯚'; // connects LR (and LL)
                 case 'ML-UL': return '🯛'; // connects UL (and LL)
-                case 'MT-UL': return '🯜'; // connects UL (and UR)
+                case 'MT-UL': return '🯘'; // top-edge fallback for MT-UL (was 🯜 — does not reach MT)
                 case 'MR-UR': return '🯙'; // connects UR (and LR)
-                case 'MT-UR': return '🯜'; // connects UR (and UL)
+                case 'MT-UR': return '🯘'; // top-edge fallback for MT-UR (was 🯜 — does not reach MT)
 
                 // Endpoints — pick based on single connection direction
                 case 'ML': case 'MR': return charMap.h;

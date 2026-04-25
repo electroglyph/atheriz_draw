@@ -559,4 +559,88 @@ function getCharFromGrid(grid: string[][], x: number, y: number, minX: number, m
     expect(badJunctionChars.includes(junctionChar!), `junction char '${junctionChar}' should connect to the entry corner`).toBe(false);
   });
 
+  it('all 8x8 junction transitions use an exact glyph or acceptable edge fallback', () => {
+    const tool = new LineTool();
+    const ctx = mockCtx();
+
+    // Exact connection points for each glyph, based on Unicode names
+    const glyphConnections: Record<string, Set<string>> = {
+      '─': new Set(['ML', 'MR']),
+      '│': new Set(['MT', 'MB']),
+      '┘': new Set(['ML', 'MT']),
+      '┐': new Set(['ML', 'MB']),
+      '└': new Set(['MR', 'MT']),
+      '┌': new Set(['MR', 'MB']),
+      '╱': new Set(['LL', 'UR']),
+      '╲': new Set(['LR', 'UL']),
+      '🯐': new Set(['MR', 'LL']),
+      '🯑': new Set(['UR', 'ML']),
+      '🯒': new Set(['UL', 'MR']),
+      '🯓': new Set(['ML', 'LR']),
+      '🯔': new Set(['UL', 'MB']),
+      '🯕': new Set(['MT', 'LR']),
+      '🯖': new Set(['UR', 'MB']),
+      '🯗': new Set(['MT', 'LL']),
+      '🯘': new Set(['UL', 'UR']),
+      '🯙': new Set(['UR', 'LR']),
+      '🯚': new Set(['LL', 'LR']),
+      '🯛': new Set(['UL', 'LL']),
+      '🯜': new Set(['UL', 'MB', 'UR']),
+      '🯝': new Set(['UR', 'ML', 'LR']),
+      '🯞': new Set(['LL', 'MT', 'LR']),
+      '🯟': new Set(['UL', 'MR', 'LL']),
+    };
+
+    // For cases with no exact glyph, the fallback must be on the same edge
+    const acceptableFallbacks: Record<string, string> = {
+      'LL-ML': '🯛', 'ML-UL': '🯛',
+      'LR-MR': '🯙', 'MR-UR': '🯙',
+      'MT-UL': '🯘', 'MT-UR': '🯘',
+      'LL-MB': '🯚', 'LR-MB': '🯚',
+    };
+
+    const directions = [
+      { dx: 1, dy: 0, entry: 'ML', exit: 'MR' },
+      { dx: -1, dy: 0, entry: 'MR', exit: 'ML' },
+      { dx: 0, dy: 1, entry: 'MT', exit: 'MB' },
+      { dx: 0, dy: -1, entry: 'MB', exit: 'MT' },
+      { dx: 1, dy: 1, entry: 'UL', exit: 'LR' },
+      { dx: 1, dy: -1, entry: 'LL', exit: 'UR' },
+      { dx: -1, dy: 1, entry: 'UR', exit: 'LL' },
+      { dx: -1, dy: -1, entry: 'LR', exit: 'UL' },
+    ];
+
+    for (const d1 of directions) {
+      for (const d2 of directions) {
+        const junction = { x: 5, y: 5 };
+        const p1 = { x: 5 - d1.dx * 3, y: 5 - d1.dy * 3 };
+        const p3 = { x: 5 + d2.dx * 3, y: 5 + d2.dy * 3 };
+
+        const seg1 = connectedLine(p1.x, p1.y, junction.x, junction.y, true);
+        const seg2 = connectedLine(junction.x, junction.y, p3.x, p3.y, true);
+
+        const combined: Point[] = [];
+        for (const p of seg1) {
+          if (!combined.some(cp => cp.x === p.x && cp.y === p.y)) combined.push(p);
+        }
+        for (const p of seg2) {
+          if (!combined.some(cp => cp.x === p.x && cp.y === p.y)) combined.push(p);
+        }
+
+        const cells = (tool as any).buildCells(ctx, combined);
+        const cell = cells.find((c: any) => c.col === junction.x && c.row === junction.y);
+        const char = cell?.cell?.char ?? 'MISSING';
+
+        const key = [d1.entry, d2.exit].sort().join('-');
+        const connections = glyphConnections[char];
+        const exactMatch = connections?.has(d1.entry) && connections?.has(d2.exit);
+        const fallbackOk = acceptableFallbacks[key] === char;
+
+        expect(exactMatch || fallbackOk,
+          `Transition ${d1.entry}->${d2.exit} (key=${key}) got '${char}' which is not an exact match or acceptable fallback`
+        ).toBe(true);
+      }
+    }
+  });
+
 });
