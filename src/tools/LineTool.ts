@@ -248,28 +248,34 @@ export class LineTool implements Tool {
         type CP = 'ML'|'MR'|'MT'|'MB'|'UL'|'UR'|'LL'|'LR';
 
         // Entry point: where the line enters this cell, given direction (dx,dy) from prev->curr
+        // Handles any step size (including non-adjacent points after deduplication).
         function entry(dx: number, dy: number): CP {
-            if (dx ===  1 && dy ===  0) return 'ML'; // came from west
-            if (dx === -1 && dy ===  0) return 'MR'; // came from east
-            if (dx ===  0 && dy ===  1) return 'MT'; // came from north
-            if (dx ===  0 && dy === -1) return 'MB'; // came from south
-            if (dx ===  1 && dy ===  1) return 'UL'; // came from NW (SE direction)
-            if (dx ===  1 && dy === -1) return 'LL'; // came from SW (NE direction)
-            if (dx === -1 && dy ===  1) return 'UR'; // came from NE (SW direction)
-            if (dx === -1 && dy === -1) return 'LR'; // came from SE (NW direction)
+            const sx = Math.sign(dx);
+            const sy = Math.sign(dy);
+            if (sx ===  1 && sy ===  0) return 'ML'; // came from west
+            if (sx === -1 && sy ===  0) return 'MR'; // came from east
+            if (sx ===  0 && sy ===  1) return 'MT'; // came from north
+            if (sx ===  0 && sy === -1) return 'MB'; // came from south
+            if (sx ===  1 && sy ===  1) return 'UL'; // came from NW (SE direction)
+            if (sx ===  1 && sy === -1) return 'LL'; // came from SW (NE direction)
+            if (sx === -1 && sy ===  1) return 'UR'; // came from NE (SW direction)
+            if (sx === -1 && sy === -1) return 'LR'; // came from SE (NW direction)
             return 'ML';
         }
 
         // Exit point: where the line exits this cell, given direction (dx,dy) from curr->next
+        // Handles any step size (including non-adjacent points after deduplication).
         function exit_(dx: number, dy: number): CP {
-            if (dx ===  1 && dy ===  0) return 'MR'; // going east
-            if (dx === -1 && dy ===  0) return 'ML'; // going west
-            if (dx ===  0 && dy === -1) return 'MT'; // going north
-            if (dx ===  0 && dy ===  1) return 'MB'; // going south
-            if (dx ===  1 && dy === -1) return 'UR'; // going NE
-            if (dx ===  1 && dy ===  1) return 'LR'; // going SE
-            if (dx === -1 && dy === -1) return 'UL'; // going NW
-            if (dx === -1 && dy ===  1) return 'LL'; // going SW
+            const sx = Math.sign(dx);
+            const sy = Math.sign(dy);
+            if (sx ===  1 && sy ===  0) return 'MR'; // going east
+            if (sx === -1 && sy ===  0) return 'ML'; // going west
+            if (sx ===  0 && sy === -1) return 'MT'; // going north
+            if (sx ===  0 && sy ===  1) return 'MB'; // going south
+            if (sx ===  1 && sy === -1) return 'UR'; // going NE
+            if (sx ===  1 && sy ===  1) return 'LR'; // going SE
+            if (sx === -1 && sy === -1) return 'UL'; // going NW
+            if (sx === -1 && sy ===  1) return 'LL'; // going SW
             return 'MR';
         }
 
@@ -308,15 +314,21 @@ export class LineTool implements Tool {
                 case 'LL-LR': return '🯚'; // Lower-Left to Lower-Right via Center
                 case 'LL-UL': return '🯛'; // Lower-Left to Upper-Left via Center
 
+                // Additional 3-point bridge characters (U+1FBDC–U+1FBDF)
+                case 'ML-UR-LR': return '🯝'; // Upper-Right to Middle-Left to Lower-Right
+                case 'LL-MR-UL': return '🯟'; // Upper-Left to Middle-Right to Lower-Left
+
                 // Off-angle Corner-to-Middle (Short/Adjacent)
-                case 'LL-ML': return charMap.tr;
-                case 'LL-MB': return charMap.tr;
-                case 'LR-MR': return charMap.tl;
-                case 'LR-MB': return charMap.tl;
-                case 'ML-UL': return charMap.br;
-                case 'MT-UL': return charMap.br;
-                case 'MR-UR': return charMap.bl;
-                case 'MT-UR': return charMap.bl;
+                // Fallbacks prioritise the corner connection so the line never
+                // appears to stop short at a junction or turn.
+                case 'LL-ML': return '🯛'; // connects LL (and UL)
+                case 'LL-MB': return '🯛'; // connects LL (and UL)
+                case 'LR-MR': return '🯙'; // connects LR (and UR)
+                case 'LR-MB': return '🯚'; // connects LR (and LL)
+                case 'ML-UL': return '🯛'; // connects UL (and LL)
+                case 'MT-UL': return '🯜'; // connects UL (and UR)
+                case 'MR-UR': return '🯙'; // connects UR (and LR)
+                case 'MT-UR': return '🯜'; // connects UR (and UL)
 
                 // Endpoints — pick based on single connection direction
                 case 'ML': case 'MR': return charMap.h;
