@@ -114,7 +114,15 @@ function initApp() {
         }
     });
 
-    const charMapDialog = new CharMapDialog((chars: string[]) => {
+    let charMapDialog: CharMapDialog;
+
+    const charPalette = new CharPalette('char-palette', appState, () => {
+        if (appState.activeToolId === 'erase') appState.activeToolId = 'brush'; // switch back
+    }, () => {
+        charMapDialog.open(appState.fontFamily);
+    });
+
+    charMapDialog = new CharMapDialog((chars: string[]) => {
         const customGroup = CHAR_GROUPS.find(g => g.name === 'Custom');
         if (customGroup) {
             for (const c of chars) {
@@ -126,12 +134,6 @@ function initApp() {
         }
     });
 
-    const charPalette = new CharPalette('char-palette', appState, () => {
-        if (appState.activeToolId === 'erase') appState.activeToolId = 'brush'; // switch back
-    }, () => {
-        charMapDialog.open(appState.fontFamily);
-    });
-
     new ColorPicker('fg-picker-container', true, appState, () => {
         if (appState.activeToolId === 'erase') appState.activeToolId = 'brush';
     });
@@ -141,6 +143,8 @@ function initApp() {
     });
 
     new GradientPicker('gradient-picker-container', appState);
+
+    const layerManager = new LayerManager('layer-manager-container', canvasState, undoStack);
 
     const toolbarInst = new Toolbar(appState, undoStack, () => {
         AnsiExporter.download(canvasState, 'art.ans');
@@ -170,7 +174,6 @@ function initApp() {
 
     new SidebarResizer('sidebar', 'sidebar-resizer');
     new SidebarResizer('right-sidebar', 'right-sidebar-resizer', true);
-    const layerManager = new LayerManager('layer-manager-container', canvasState, undoStack);
 
     const previewWindow = new PreviewWindow(
         () => canvasState,
