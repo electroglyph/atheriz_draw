@@ -9,7 +9,7 @@ import { GridRenderer } from '../src/canvas/GridRenderer';
 import { AppState } from '../src/types';
 import { CellMetrics } from '../src/utils/fontMetrics';
 
-const metrics: CellMetrics = { width: 10, height: 10, baselineY: 8, font: '10px monospace' };
+const metrics: CellMetrics = { width: 10, height: 10, font: '10px monospace' };
 
 function makeAppState(): AppState {
   return {

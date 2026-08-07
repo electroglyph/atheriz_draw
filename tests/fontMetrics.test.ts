@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { measureCellMetrics } from '../src/utils/fontMetrics';
+import { measureCellMetrics, deriveCellMetrics } from '../src/utils/fontMetrics';
 import { fontNameToCSS } from '../src/utils/googleFontLoader';
 
 const BACKGROUND_CSS =
@@ -66,6 +66,49 @@ describe('measureCellMetrics builds a valid ctx.font string', () => {
     mockCanvasCtx();
     const metrics = measureCellMetrics('monospace', 22);
     expect(metrics.font).toMatch(/^22px /);
+  });
+});
+
+describe('deriveCellMetrics (pure, no DOM)', () => {
+  it('uses the font bounding box when ascent & descent are reported', () => {
+    const { height } = deriveCellMetrics(18, {
+      fontBoundingBoxAscent: 14,
+      fontBoundingBoxDescent: 4,
+    });
+    // ascent + descent + leading (2)
+    expect(height).toBe(20);
+  });
+
+  it('prefers fontBoundingBox over actualBoundingBox values', () => {
+    const { height } = deriveCellMetrics(18, {
+      fontBoundingBoxAscent: 14,
+      fontBoundingBoxDescent: 4,
+      actualBoundingBoxAscent: 12,
+      actualBoundingBoxDescent: 3,
+    });
+    expect(height).toBe(20);
+  });
+
+  it('falls back to realistic actual glyph bounds when font box is absent', () => {
+    const { height } = deriveCellMetrics(18, {
+      actualBoundingBoxAscent: 14,
+      actualBoundingBoxDescent: 3,
+    });
+    expect(height).toBe(19);
+  });
+
+  it('falls back to fontSize * 1.2 when no vertical metrics are reported', () => {
+    const { height } = deriveCellMetrics(22, { width: 10 });
+    expect(height).toBe(Math.ceil(22 * 1.2));
+  });
+
+  it('uses the measured width and a fontSize-ratio fallback when width is absent', () => {
+    expect(deriveCellMetrics(20, { width: 15 }).width).toBe(15);
+    expect(deriveCellMetrics(20, {}).width).toBe(Math.ceil(20 * 0.6));
+  });
+
+  it('never returns a zero/negative width', () => {
+    expect(deriveCellMetrics(20, { width: 0 }).width).toBeGreaterThan(0);
   });
 });
 
