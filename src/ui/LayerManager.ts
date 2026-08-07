@@ -6,6 +6,8 @@ export class LayerManager {
     private state!: CanvasState;
     private undoStack: UndoStack;
 
+    private renderBound = () => this.render();
+
     constructor(containerId: string, state: CanvasState, undoStack: UndoStack) {
         this.container = document.getElementById(containerId)!;
         this.undoStack = undoStack;
@@ -13,10 +15,11 @@ export class LayerManager {
     }
 
     public updateState(newState: CanvasState) {
+        if (this.state) {
+            this.state.offChange(this.renderBound);
+        }
         this.state = newState;
-        this.state.onChange(() => {
-            this.render();
-        });
+        this.state.onChange(this.renderBound);
         this.render();
     }
 
