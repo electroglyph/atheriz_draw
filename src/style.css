@@ -601,7 +601,7 @@ canvas {
 
 #main-canvas {
   touch-action: none; 
-  cursor: default;
+  cursor: crosshair;
 }
 
 body.tool-gradient-active #main-canvas {
