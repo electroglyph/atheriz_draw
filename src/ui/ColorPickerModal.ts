@@ -64,6 +64,9 @@ export class ColorPickerModal {
     private val = 100;
     private dragging: 'sv' | 'hue' | null = null;
 
+    private boundWindowMouseMove = (e: MouseEvent) => this.onMouseMove(e);
+    private boundWindowMouseUp = () => this.onMouseUp();
+
     private resolve: ((color: Color | null) => void) | null = null;
 
     constructor() {
@@ -80,8 +83,8 @@ export class ColorPickerModal {
 
         this.svCanvas.addEventListener('mousedown', (e) => this.onSvDown(e));
         this.hueCanvas.addEventListener('mousedown', (e) => this.onHueDown(e));
-        window.addEventListener('mousemove', (e) => this.onMouseMove(e));
-        window.addEventListener('mouseup', () => this.onMouseUp());
+        window.addEventListener('mousemove', this.boundWindowMouseMove);
+        window.addEventListener('mouseup', this.boundWindowMouseUp);
 
         this.rInput.addEventListener('change', () => this.updateFromRgb());
         this.gInput.addEventListener('change', () => this.updateFromRgb());
@@ -95,6 +98,11 @@ export class ColorPickerModal {
         this.modal.addEventListener('click', (e) => {
             if (e.target === this.modal) this.close(null);
         });
+    }
+
+    public destroy() {
+        window.removeEventListener('mousemove', this.boundWindowMouseMove);
+        window.removeEventListener('mouseup', this.boundWindowMouseUp);
     }
 
     open(initialColor: Color): Promise<Color | null> {

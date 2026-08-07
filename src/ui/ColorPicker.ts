@@ -17,6 +17,13 @@ export class ColorPicker {
 
     private history: Color[] = [];
 
+    private boundColorPicked = (e: any) => {
+        if (e.detail.isFg === this.isForeground) {
+            this.setColor(e.detail.color);
+            this.commitToHistory(e.detail.color);
+        }
+    };
+
     constructor(containerId: string, isFg: boolean, appState: any, onChange: () => void) {
         this.container = document.getElementById(containerId)!;
         this.isForeground = isFg;
@@ -29,12 +36,11 @@ export class ColorPicker {
         this.render();
         this.updateUI();
 
-        window.addEventListener('colorPicked', (e: any) => {
-            if (e.detail.isFg === this.isForeground) {
-                this.setColor(e.detail.color);
-                this.commitToHistory(e.detail.color);
-            }
-        });
+        window.addEventListener('colorPicked', this.boundColorPicked);
+    }
+
+    public destroy() {
+        window.removeEventListener('colorPicked', this.boundColorPicked);
     }
 
     private getColor(): Color {

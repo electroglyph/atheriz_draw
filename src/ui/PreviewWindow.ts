@@ -10,11 +10,55 @@ export class PreviewWindow {
     private getState: () => CanvasState;
     private getFont: () => string;
 
+    private win!: HTMLElement;
+    private titleBar!: HTMLElement;
+    private dragging = false;
+    private dragStartX = 0;
+    private dragStartY = 0;
+    private winStartLeft = 0;
+    private winStartTop = 0;
+    private winW = 0;
+    private winH = 0;
+
+    private boundWindowMouseMove = (e: MouseEvent) => {
+        if (!this.dragging) return;
+
+        let newLeft = this.winStartLeft + e.clientX - this.dragStartX;
+        let newTop = this.winStartTop + e.clientY - this.dragStartY;
+
+        // Simple boundary clamping to keep it on screen
+        const maxX = window.innerWidth - this.winW;
+        const maxY = window.innerHeight - this.winH;
+
+        newLeft = Math.max(0, Math.min(newLeft, maxX));
+        newTop = Math.max(0, Math.min(newTop, maxY));
+
+        this.win.style.left = newLeft + 'px';
+        this.win.style.top = newTop + 'px';
+    };
+
+    private boundWindowMouseUp = () => {
+        if (this.dragging) {
+            this.dragging = false;
+            this.titleBar.style.cursor = 'grab';
+        }
+    };
+
+    private boundWindowKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' && this.isOpen()) this.close();
+    };
+
     constructor(getState: () => CanvasState, getFont: () => string) {
         this.getState = getState;
         this.getFont = getFont;
         this.modal = this.buildModal();
         document.body.appendChild(this.modal);
+    }
+
+    public destroy() {
+        window.removeEventListener('mousemove', this.boundWindowMouseMove);
+        window.removeEventListener('mouseup', this.boundWindowMouseUp);
+        window.removeEventListener('keydown', this.boundWindowKeyDown);
     }
 
     private buildModal(): HTMLElement {
@@ -76,62 +120,39 @@ export class PreviewWindow {
         titleBar.appendChild(closeBtn);
 
         // Drag-to-move
-        let dragging = false;
-        let dragStartX = 0, dragStartY = 0;
-        let winStartLeft = 0, winStartTop = 0;
-        let winW = 0, winH = 0;
-
         titleBar.addEventListener('mousedown', (e) => {
             if (e.target === closeBtn) return;
-            dragging = true;
-            
+            this.dragging = true;
+
             // 1. Capture the current rendered position FIRST
             const rect = win.getBoundingClientRect();
-            winW = rect.width;
-            winH = rect.height;
-            winStartLeft = rect.left;
-            winStartTop  = rect.top;
-            
+            this.winW = rect.width;
+            this.winH = rect.height;
+            this.winStartLeft = rect.left;
+            this.winStartTop = rect.top;
+
             // 2. Now switch to absolute positioning and remove flex centering.
             // This prevents the window from jumping to the top-left before we capture it.
             modal.style.alignItems = 'flex-start';
             modal.style.justifyContent = 'flex-start';
-            
+
             win.style.position = 'absolute';
-            win.style.left = winStartLeft + 'px';
-            win.style.top  = winStartTop  + 'px';
+            win.style.left = this.winStartLeft + 'px';
+            win.style.top = this.winStartTop + 'px';
             win.style.margin = '0';
-            
-            dragStartX = e.clientX;
-            dragStartY = e.clientY;
-            
+
+            this.dragStartX = e.clientX;
+            this.dragStartY = e.clientY;
+
             titleBar.style.cursor = 'grabbing';
             e.preventDefault();
         });
 
-        window.addEventListener('mousemove', (e) => {
-            if (!dragging) return;
-            
-            let newLeft = winStartLeft + e.clientX - dragStartX;
-            let newTop  = winStartTop  + e.clientY - dragStartY;
+        this.win = win;
+        this.titleBar = titleBar;
 
-            // Simple boundary clamping to keep it on screen
-            const maxX = window.innerWidth - winW;
-            const maxY = window.innerHeight - winH;
-
-            newLeft = Math.max(0, Math.min(newLeft, maxX));
-            newTop  = Math.max(0, Math.min(newTop, maxY));
-
-            win.style.left = newLeft + 'px';
-            win.style.top  = newTop  + 'px';
-        });
-
-        window.addEventListener('mouseup', () => {
-            if (dragging) {
-                dragging = false;
-                titleBar.style.cursor = 'grab';
-            }
-        });
+        window.addEventListener('mousemove', this.boundWindowMouseMove);
+        window.addEventListener('mouseup', this.boundWindowMouseUp);
 
         // Terminal container
         this.termContainer = document.createElement('div');
@@ -147,9 +168,7 @@ export class PreviewWindow {
         });
 
         // Close on Escape
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isOpen()) this.close();
-        });
+        window.addEventListener('keydown', this.boundWindowKeyDown);
 
         return modal;
     }

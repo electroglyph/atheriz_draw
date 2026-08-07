@@ -26,6 +26,39 @@ export class ColorAdjustDialog {
 
     private isOpened: boolean = false;
 
+    private win!: HTMLElement;
+    private titleBar!: HTMLElement;
+    private dragging = false;
+    private dragStartX = 0;
+    private dragStartY = 0;
+    private winStartLeft = 0;
+    private winStartTop = 0;
+    private winW = 0;
+    private winH = 0;
+
+    private boundWindowMouseMove = (e: MouseEvent) => {
+        if (!this.dragging) return;
+
+        let newLeft = this.winStartLeft + e.clientX - this.dragStartX;
+        let newTop = this.winStartTop + e.clientY - this.dragStartY;
+
+        const maxX = window.innerWidth - this.winW;
+        const maxY = window.innerHeight - this.winH;
+
+        newLeft = Math.max(0, Math.min(newLeft, maxX));
+        newTop = Math.max(0, Math.min(newTop, maxY));
+
+        this.win.style.left = newLeft + 'px';
+        this.win.style.top = newTop + 'px';
+    };
+
+    private boundWindowMouseUp = () => {
+        if (this.dragging) {
+            this.dragging = false;
+            this.titleBar.style.cursor = 'grab';
+        }
+    };
+
     constructor(
         onPreview: (options: ColorAdjustOptions, applyToAll: boolean) => void,
         onApply: (options: ColorAdjustOptions, applyToAll: boolean) => void,
@@ -92,61 +125,43 @@ export class ColorAdjustDialog {
         if (titleBar) {
             titleBar.style.cursor = 'grab';
             titleBar.style.userSelect = 'none';
-
-            let dragging = false;
-            let dragStartX = 0, dragStartY = 0;
-            let winStartLeft = 0, winStartTop = 0;
-            let winW = 0, winH = 0;
+            this.win = win;
+            this.titleBar = titleBar;
 
             titleBar.addEventListener('mousedown', (e) => {
-                dragging = true;
-                
+                this.dragging = true;
+
                 const rect = win.getBoundingClientRect();
-                winW = rect.width;
-                winH = rect.height;
-                winStartLeft = rect.left;
-                winStartTop  = rect.top;
-                
+                this.winW = rect.width;
+                this.winH = rect.height;
+                this.winStartLeft = rect.left;
+                this.winStartTop = rect.top;
+
                 this.modal.style.alignItems = 'flex-start';
                 this.modal.style.justifyContent = 'flex-start';
-                
+
                 win.style.position = 'absolute';
-                win.style.left = winStartLeft + 'px';
-                win.style.top  = winStartTop  + 'px';
+                win.style.left = this.winStartLeft + 'px';
+                win.style.top = this.winStartTop + 'px';
                 win.style.margin = '0';
                 // remove transform offset so it doesn't skew our left/top logic
                 win.style.transform = 'none';
-                
-                dragStartX = e.clientX;
-                dragStartY = e.clientY;
-                
+
+                this.dragStartX = e.clientX;
+                this.dragStartY = e.clientY;
+
                 titleBar.style.cursor = 'grabbing';
                 e.preventDefault();
             });
 
-            window.addEventListener('mousemove', (e) => {
-                if (!dragging) return;
-                
-                let newLeft = winStartLeft + e.clientX - dragStartX;
-                let newTop  = winStartTop  + e.clientY - dragStartY;
-
-                const maxX = window.innerWidth - winW;
-                const maxY = window.innerHeight - winH;
-
-                newLeft = Math.max(0, Math.min(newLeft, maxX));
-                newTop  = Math.max(0, Math.min(newTop, maxY));
-
-                win.style.left = newLeft + 'px';
-                win.style.top  = newTop  + 'px';
-            });
-
-            window.addEventListener('mouseup', () => {
-                if (dragging) {
-                    dragging = false;
-                    titleBar.style.cursor = 'grab';
-                }
-            });
+            window.addEventListener('mousemove', this.boundWindowMouseMove);
+            window.addEventListener('mouseup', this.boundWindowMouseUp);
         }
+    }
+
+    public destroy() {
+        window.removeEventListener('mousemove', this.boundWindowMouseMove);
+        window.removeEventListener('mouseup', this.boundWindowMouseUp);
     }
 
     private getCurrentOptions(): ColorAdjustOptions {

@@ -31,6 +31,12 @@ export class GoogleFontPicker {
     private previewQueue: string[] = [];
     private previewInFlight = 0;
 
+    private boundDocumentKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' && !this.modal.classList.contains('hidden')) {
+            this.close();
+        }
+    };
+
     constructor(onSelect: (family: string) => void) {
         this.onSelect = onSelect;
 
@@ -100,11 +106,11 @@ export class GoogleFontPicker {
             if (e.target === this.modal) this.close();
         });
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !this.modal.classList.contains('hidden')) {
-                this.close();
-            }
-        });
+        document.addEventListener('keydown', this.boundDocumentKeyDown);
+    }
+
+    public destroy() {
+        document.removeEventListener('keydown', this.boundDocumentKeyDown);
     }
 
     private applyFilter() {

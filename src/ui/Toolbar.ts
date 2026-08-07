@@ -44,6 +44,22 @@ export class Toolbar {
     public clearSelectionCallback: (() => void) | null = null;
     public onRotateAction?: (mode: Exclude<RotateMode, 'free'>) => void;
 
+    private boundKeyDown = (e: KeyboardEvent) => {
+        if (e.target instanceof HTMLInputElement ||
+            e.target instanceof HTMLSelectElement ||
+            e.target instanceof HTMLTextAreaElement) return;
+
+        if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'z') {
+            const s = this.undoStack.undo();
+            if (s) this.stateRestoreCallback(s);
+            e.preventDefault();
+        } else if ((e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'z') || (e.ctrlKey && e.key.toLowerCase() === 'y')) {
+            const s = this.undoStack.redo();
+            if (s) this.stateRestoreCallback(s);
+            e.preventDefault();
+        }
+    };
+
     constructor(
         appState: AppState, 
         undoStack: UndoStack, 
@@ -234,21 +250,11 @@ export class Toolbar {
             this.loadSystemFonts();
         });
 
-        window.addEventListener('keydown', (e) => {
-            if (e.target instanceof HTMLInputElement || 
-                e.target instanceof HTMLSelectElement || 
-                e.target instanceof HTMLTextAreaElement) return;
+        window.addEventListener('keydown', this.boundKeyDown);
+    }
 
-            if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'z') {
-                const s = this.undoStack.undo();
-                if (s) this.stateRestoreCallback(s);
-                e.preventDefault();
-            } else if ((e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'z') || (e.ctrlKey && e.key.toLowerCase() === 'y')) {
-                const s = this.undoStack.redo();
-                if (s) this.stateRestoreCallback(s);
-                e.preventDefault();
-            }
-        });
+    public destroy() {
+        window.removeEventListener('keydown', this.boundKeyDown);
     }
 
     private updateToolButtons() {

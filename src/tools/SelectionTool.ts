@@ -51,6 +51,24 @@ function key(col: number, row: number): string {
 
 const LIGHT_ROUNDED_CHARS = new Set([...LIGHT_CHARS, ...ROUNDED_CHARS]);
 
+let selectionEscapeBound = false;
+let activeSelection: SelectionTool | null = null;
+
+function bindSelectionEscapeHandler(): void {
+    if (selectionEscapeBound) return;
+    selectionEscapeBound = true;
+    window.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            const tool = activeSelection;
+            if (tool && tool.hasSelection) {
+                tool.clearSelection();
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+    });
+}
+
 export class SelectionTool implements Tool {
     private selectedCells: Set<string> = new Set();
     private clipboard: {
@@ -63,18 +81,14 @@ export class SelectionTool implements Tool {
     private anchor: Point | null = null;
     private lassoPath: Point[] = [];
     private lastRenderer: GridRenderer | null = null;
-    private lastCtx: ToolContext | null = null;
 
     constructor() {
-        window.addEventListener('keydown', (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                if (this.selectedCells.size > 0) {
-                    this.clearSelection(this.lastCtx ?? undefined);
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            }
-        });
+        activeSelection = this;
+        bindSelectionEscapeHandler();
+    }
+
+    public get hasSelection(): boolean {
+        return this.selectedCells.size > 0;
     }
 
     private getInkColor(cell: Cell): Color {
@@ -104,7 +118,6 @@ export class SelectionTool implements Tool {
 
     onMouseDown(ctx: ToolContext, cell: Point): void {
         this.lastRenderer = ctx.renderer;
-        this.lastCtx = ctx;
         const mode = ctx.appState.selectMode;
 
         if (mode === 'single') {
