@@ -4,7 +4,7 @@ import { LayerManager } from '../src/ui/LayerManager';
 import { CanvasState } from '../src/state/CanvasState';
 import { UndoStack } from '../src/state/UndoStack';
 
-describe('LayerManager.updateState listener hygiene (issue 14)', () => {
+describe('LayerManager does not stack onChange listeners', () => {
   it('does not stack onChange listeners across updateState calls', () => {
     const container = document.createElement('div');
     container.id = 'layers';

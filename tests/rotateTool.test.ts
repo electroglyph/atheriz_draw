@@ -68,7 +68,7 @@ function nonEmptyCells(state: CanvasState): string[] {
   return keys.sort();
 }
 
-describe('RotateTool even-size selection (issue 20)', () => {
+describe('RotateTool even-size selections rotate in place', () => {
   it('returns cells to their original positions after four 90° rotations', () => {
     const state = makeState();
     const ctx = makeCtx(state);

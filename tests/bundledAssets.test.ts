@@ -4,7 +4,7 @@ import { join } from 'path';
 
 const root = join(__dirname, '..');
 
-describe('Fira Code bundle family (issue 3)', () => {
+describe('bundled Fira Code family is referenced consistently', () => {
   it('bundled FiraCode.css declares the family the app references', () => {
     const css = readFileSync(join(root, 'fonts/FiraCode.css'), 'utf8');
     // App uses 'Fira Code'; the css currently declares 'Fira Custom'.
@@ -12,7 +12,7 @@ describe('Fira Code bundle family (issue 3)', () => {
   });
 });
 
-describe('chafa.wasm URL (issue 4)', () => {
+describe('chafa.wasm URL resolves under a deployment subpath', () => {
   it('imageLoader resolves the wasm URL from BASE_URL, not hardcoded root', () => {
     const src = readFileSync(join(root, 'src/utils/imageLoader.ts'), 'utf8');
     expect(src).not.toMatch(/['"]\/chafa\.wasm['"]/);

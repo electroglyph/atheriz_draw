@@ -1,6 +1,8 @@
 const loadedPreviews = new Set<string>();
 const loadedFull = new Set<string>();
 
+import { toCssFontFamily } from './cssFont';
+
 const CACHE_BASE = import.meta.env.BASE_URL + 'gfonts/css';
 const CDN_BASE = 'https://fonts.googleapis.com/css2';
 
@@ -16,8 +18,7 @@ function cssEscapedFamily(family: string): string {
 }
 
 export function fontNameToCSS(family: string): string {
-    if (family.includes(' ')) return `"${family}"`;
-    return family;
+    return toCssFontFamily(family);
 }
 
 function loadManifest(): Promise<Set<string>> {

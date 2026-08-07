@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { CanvasState } from '../src/state/CanvasState';
 
-describe('CanvasState.resize keeps a consistent cell shape (issue 6)', () => {
+describe('CanvasState.resize keeps a consistent cell shape', () => {
   it('resized cells expose the full Cell shape including styling flags', () => {
     const s = new CanvasState(2, 2);
     s.setCell(0, 0, {

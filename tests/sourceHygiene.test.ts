@@ -8,7 +8,7 @@ function src(rel: string): string {
   return readFileSync(join(root, rel), 'utf8');
 }
 
-describe('main.ts declaration ordering (issue 15)', () => {
+describe('main.ts declares singletons before use', () => {
   it('declares charPalette before any callback that calls it', () => {
     const main = src('src/main.ts');
     const declIdx = main.indexOf('const charPalette');
@@ -30,14 +30,14 @@ describe('main.ts declaration ordering (issue 15)', () => {
   });
 });
 
-describe('font metrics dead baselineY (issue 17)', () => {
+describe('font metrics do not compute unused baselineY', () => {
   it('does not compute a baselineY that is never used', () => {
     const fm = src('src/utils/fontMetrics.ts');
     expect(fm).not.toContain('baselineY');
   });
 });
 
-describe('duplicate bresenham implementations (issue 18)', () => {
+describe('bresenham is shared via the geometry module', () => {
   it('LineTool imports getLinePoints instead of defining its own bresenham', () => {
     const lt = src('src/tools/LineTool.ts');
     expect(lt).not.toMatch(/function\s+bresenham/);
@@ -49,7 +49,7 @@ describe('duplicate bresenham implementations (issue 18)', () => {
   });
 });
 
-describe('canvas cursor (issue 22)', () => {
+describe('canvas shows a crosshair cursor', () => {
   it('#main-canvas uses a crosshair cursor, not default', () => {
     const css = src('src/style.css');
     const block = css.match(/#main-canvas\s*\{[^}]*\}/);
@@ -60,7 +60,7 @@ describe('canvas cursor (issue 22)', () => {
   });
 });
 
-describe('dead code / leftovers (issue 24)', () => {
+describe('no dead code or debug leftovers', () => {
   it('TextToANSI.ts contains no debug console.log calls', () => {
     const ansi = src('src/utils/TextToANSI.ts');
     expect(ansi).not.toMatch(/console\.log/);

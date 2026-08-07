@@ -27,7 +27,7 @@ function makeAppState(): AppState {
   };
 }
 
-describe('no-op undo entries (issue 23)', () => {
+describe('undo entries are only recorded for real changes', () => {
   it('does not push an undo entry when the canvas is unchanged', () => {
     const state = new CanvasState(3, 3);
     // Pre-fill the target cell so clicking it does not actually change anything.

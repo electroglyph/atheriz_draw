@@ -27,7 +27,7 @@ function makeAppState(): AppState {
   };
 }
 
-describe('MoveTool operates on the correct layer (issue 21)', () => {
+describe('MoveTool operates on the correct layer', () => {
   it('moves composite-visible content regardless of the active layer', () => {
     const state = new CanvasState(5, 5);
     // Content lives on the background layer (index 0).

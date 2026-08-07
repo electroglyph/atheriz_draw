@@ -8,7 +8,7 @@ function readPackageJson(): any {
   return JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 }
 
-describe('package.json scripts (issues 7 & 8)', () => {
+describe('package.json scripts for typecheck and tests', () => {
   it('has a typecheck script that runs tsc --noEmit', () => {
     const pkg = readPackage();
     const script: string | undefined = pkg.scripts?.typecheck;
@@ -22,14 +22,14 @@ describe('package.json scripts (issues 7 & 8)', () => {
   });
 });
 
-describe('module format (issue 9)', () => {
+describe('package consistently uses ESM', () => {
   it('declares "type": "module" for consistent ESM usage', () => {
     const pkg = readPackage();
     expect(pkg.type).toBe('module');
   });
 });
 
-describe('scripts/extract_glyphs.js (issue 10)', () => {
+describe('extract_glyphs.js runs under the package module format', () => {
   it('does not use top-level ESM import under a CommonJS package', () => {
     const src = readFileSync(join(root, 'scripts/extract_glyphs.js'), 'utf8');
     // Package has no "type": "module", so bare `import` statements crash.

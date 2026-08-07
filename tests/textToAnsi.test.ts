@@ -26,7 +26,7 @@ function makeSourceCanvas(fontLog: string[]) {
   };
 }
 
-describe('TextToANSI font string (issue 5)', () => {
+describe('TextToANSI font string is valid', () => {
   it('sets a valid ctx.font that is not the mangled "96px 18px ..." form', async () => {
     const fontLog: string[] = [];
     const sourceCanvas: any = makeSourceCanvas(fontLog);

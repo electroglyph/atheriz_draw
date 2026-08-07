@@ -1,3 +1,5 @@
+import { toCssFontFamily } from "./cssFont";
+
 export interface CellMetrics {
   width: number;
   height: number;
@@ -14,7 +16,7 @@ export function measureCellMetrics(
 
   // Most monospace fonts have a ~0.6 width to height ratio
   // We'll explicitly set line-height or use accurate measurement
-  const font = `${fontSize}px "${fontFamily}"`;
+  const font = `${fontSize}px ${toCssFontFamily(fontFamily)}`;
   ctx.font = font;
 
   // Measure a typical wide character

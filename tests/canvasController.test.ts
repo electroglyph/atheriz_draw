@@ -43,7 +43,7 @@ beforeEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('CanvasController destroy() (issue 11)', () => {
+describe('CanvasController tears down its global listeners', () => {
   it('exposes a destroy() that removes its global listeners', () => {
     const canvas = makeCanvasDom();
     const state = new CanvasState(10, 10);
@@ -58,7 +58,7 @@ describe('CanvasController destroy() (issue 11)', () => {
   });
 });
 
-describe('dragging off-canvas (issue 13)', () => {
+describe('strokes are clipped at the canvas edge', () => {
   it('does not paint cells outside the grid while dragging', () => {
     const canvas = makeCanvasDom();
     const state = new CanvasState(10, 10);

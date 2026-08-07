@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SelectionTool } from '../src/tools/SelectionTool';
 
-describe('SelectionTool listener hygiene (issue 12)', () => {
+describe('SelectionTool does not accumulate window listeners', () => {
   it('does not register a duplicate Escape handler per instance', () => {
     const addSpy = vi.spyOn(window, 'addEventListener');
 
