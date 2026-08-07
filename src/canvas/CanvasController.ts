@@ -9,19 +9,34 @@ export class CanvasController {
     private isDragging: boolean = false;
     private lastCell: Point | null = null;
 
+    private boundOnMouseDown = this.onMouseDown.bind(this);
+    private boundOnMouseMove = this.onMouseMove.bind(this);
+    private boundOnMouseUp = this.onMouseUp.bind(this);
+    private boundOnKeyDown = this.onKeyDown.bind(this);
+    private handleContextMenu = (e: Event) => e.preventDefault();
+
     constructor(canvas: HTMLCanvasElement, metrics: CellMetrics, toolManager: ToolManager) {
         this.canvas = canvas;
         this.metrics = metrics;
         this.toolManager = toolManager;
 
         // Prevent context menu
-        this.canvas.addEventListener('contextmenu', e => e.preventDefault());
+        this.canvas.addEventListener('contextmenu', this.handleContextMenu);
 
-        this.canvas.addEventListener('mousedown', this.onMouseDown.bind(this));
-        
-        window.addEventListener('mousemove', this.onMouseMove.bind(this));
-        window.addEventListener('mouseup', this.onMouseUp.bind(this));
-        window.addEventListener('keydown', this.onKeyDown.bind(this));
+        this.canvas.addEventListener('mousedown', this.boundOnMouseDown);
+
+        window.addEventListener('mousemove', this.boundOnMouseMove);
+        window.addEventListener('mouseup', this.boundOnMouseUp);
+        window.addEventListener('keydown', this.boundOnKeyDown);
+    }
+
+    public destroy() {
+        this.canvas.removeEventListener('contextmenu', this.handleContextMenu);
+        this.canvas.removeEventListener('mousedown', this.boundOnMouseDown);
+
+        window.removeEventListener('mousemove', this.boundOnMouseMove);
+        window.removeEventListener('mouseup', this.boundOnMouseUp);
+        window.removeEventListener('keydown', this.boundOnKeyDown);
     }
 
     public updateMetrics(metrics: CellMetrics) {

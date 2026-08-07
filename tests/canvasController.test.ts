@@ -54,7 +54,32 @@ describe('CanvasController tears down its global listeners', () => {
     // Proper API surface: destroy() exists so re-creation doesn't leak handlers.
     expect(typeof (controller as any).destroy).toBe('function');
 
+    const winRemove = vi.spyOn(window, 'removeEventListener');
+    const canvasRemove = vi.spyOn(canvas, 'removeEventListener');
     (controller as any).destroy();
+
+    for (const event of ['mousemove', 'mouseup', 'keydown']) {
+      expect(winRemove).toHaveBeenCalledWith(event, expect.any(Function));
+    }
+    for (const event of ['mousedown', 'contextmenu']) {
+      expect(canvasRemove).toHaveBeenCalledWith(event, expect.any(Function));
+    }
+  });
+
+  it('does not react to input after destroy()', () => {
+    const canvas = makeCanvasDom();
+    const state = new CanvasState(10, 10);
+    const tm = new ToolManager(makeContext(state));
+    const controller = new CanvasController(canvas, metrics, tm);
+    (controller as any).destroy();
+
+    // A mousedown/pointer/key after teardown must not reach the tool manager.
+    canvas.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 55, clientY: 55 }));
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: 60, clientY: 60 }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete' }));
+
+    const active = state.getActiveLayer();
+    expect(active.cells.flat().every(c => c.char === '')).toBe(true);
   });
 });
 
