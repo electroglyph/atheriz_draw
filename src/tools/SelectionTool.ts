@@ -225,8 +225,8 @@ export class SelectionTool implements Tool {
         const result = new Set<string>();
         for (const k of cells) {
             const [col, row] = k.split(',').map(Number);
-            const comp = ctx.state.getCompositeCell(col, row);
-            if (comp && ((comp.char && comp.char.trim() !== '') || (comp.bg[0] !== -1 && !(comp.bg[0] === 0 && comp.bg[1] === 0 && comp.bg[2] === 0)))) {
+            const cell = ctx.state.getCell(col, row);
+            if (cell && ((cell.char && cell.char.trim() !== '') || (cell.bg[0] !== -1 && !(cell.bg[0] === 0 && cell.bg[1] === 0 && cell.bg[2] === 0)))) {
                 result.add(k);
             }
         }
@@ -308,7 +308,7 @@ export class SelectionTool implements Tool {
      * Floods contiguous, matching characters or colors acting as a "Magic Wand".
      */
     private magicSelectCells(ctx: ToolContext, cell: Point): Set<string> {
-        const composite = ctx.state.getCompositeCell(cell.x, cell.y);
+        const composite = ctx.state.getCell(cell.x, cell.y);
         if (!composite) return new Set([key(cell.x, cell.y)]);
 
         const ch = composite.char || ' ';
@@ -332,7 +332,7 @@ export class SelectionTool implements Tool {
         visited.add(key(cell.x, cell.y));
 
         const match = (c: number, r: number): boolean => {
-            const comp = ctx.state.getCompositeCell(c, r);
+            const comp = ctx.state.getCell(c, r);
             if (!comp) return false;
             
             const compCh = comp.char || ' ';
@@ -374,7 +374,7 @@ export class SelectionTool implements Tool {
     }
 
     private colorSelectCells(ctx: ToolContext, cell: Point, fuzzy: boolean): Set<string> {
-        const composite = ctx.state.getCompositeCell(cell.x, cell.y);
+        const composite = ctx.state.getCell(cell.x, cell.y);
         if (!composite) return new Set([key(cell.x, cell.y)]);
 
         const inkColor = this.getInkColor(composite);
@@ -386,7 +386,7 @@ export class SelectionTool implements Tool {
         const EXACT_THRESHOLD = 3;
 
         const match = (c: number, r: number): boolean => {
-            const comp = ctx.state.getCompositeCell(c, r);
+            const comp = ctx.state.getCell(c, r);
             if (!comp) return false;
 
             const compInk = this.getInkColor(comp);
@@ -465,7 +465,7 @@ export class SelectionTool implements Tool {
         const cells: { col: number; row: number; cell: Cell }[] = [];
         for (const k of this.selectedCells) {
             const [col, row] = k.split(',').map(Number);
-            const composite = _ctx.state.getCompositeCell(col, row);
+            const composite = _ctx.state.getCell(col, row);
             if (composite) {
                 cells.push({
                     col,
