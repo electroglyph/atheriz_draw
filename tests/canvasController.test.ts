@@ -117,6 +117,40 @@ describe('strokes are clipped at the canvas edge', () => {
     const active = state.getActiveLayer();
     expect(active.overflowCells ? active.overflowCells.size : 0).toBe(0);
   });
+
+  it('clips an off-canvas drag at the last valid cell instead of painting nothing', () => {
+    const canvas = makeCanvasDom();
+    const state = new CanvasState(10, 10);
+    const tm = new ToolManager(makeContext(state));
+
+    new CanvasController(canvas, metrics, tm);
+
+    // start inside at cell (5,5), drag far past the right/bottom edges
+    canvas.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 55, clientY: 55 }));
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: 50000, clientY: 50000 }));
+
+    const active = state.getActiveLayer();
+    const boundary = active.cells[9][9];
+    // The stroke should have clipped at the grid edge, painting the corner cell.
+    expect(boundary.char).toBe('x');
+    expect(active.overflowCells ? active.overflowCells.size : 0).toBe(0);
+  });
+
+  it('clamps coordinates that go past the top/left edges to the origin', () => {
+    const canvas = makeCanvasDom();
+    const state = new CanvasState(10, 10);
+    const tm = new ToolManager(makeContext(state));
+
+    new CanvasController(canvas, metrics, tm);
+
+    canvas.dispatchEvent(new MouseEvent('mousedown', { button: 0, clientX: 55, clientY: 55 }));
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: -50000, clientY: -50000 }));
+
+    const active = state.getActiveLayer();
+    const origin = active.cells[0][0];
+    expect(origin.char).toBe('x');
+    expect(active.overflowCells ? active.overflowCells.size : 0).toBe(0);
+  });
 });
 
 function makeContext(state: CanvasState): ToolContext {

@@ -48,10 +48,12 @@ export class CanvasController {
         // Calculate coordinate ignoring scroll (boundingClient is relative to viewport)
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
+        const maxCol = Math.max(0, Math.floor(rect.width / this.metrics.width) - 1);
+        const maxRow = Math.max(0, Math.floor(rect.height / this.metrics.height) - 1);
 
         return {
-            x: Math.floor(x / this.metrics.width),
-            y: Math.floor(y / this.metrics.height)
+            x: Math.min(Math.max(Math.floor(x / this.metrics.width), 0), maxCol),
+            y: Math.min(Math.max(Math.floor(y / this.metrics.height), 0), maxRow)
         };
     }
 
