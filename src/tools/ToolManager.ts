@@ -2,7 +2,6 @@ import { Tool, ToolContext } from './Tool';
 import { Point } from '../types';
 import { BrushTool } from './BrushTool';
 import { EraserTool } from './EraserTool';
-// Shapes will be imported later
 
 export class ToolManager {
     private tools: Record<string, Tool> = {};

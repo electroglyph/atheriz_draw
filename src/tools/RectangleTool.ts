@@ -143,10 +143,6 @@ export class RectangleTool implements Tool {
 
                         // Map using charMap
                         
-                        // Because getSmartChar currently defaults to light logic, we need to map via charMap 
-                        // Actually, getSmartChar uses a map, so let's rebuild a specific map for this Rect Tool
-                        // or just use manual lookup for simplicity since we have our specific charMap
-                        
                         if (n&&e&&s&&w) charToDraw = charMap.c;
                         else if (n&&s&&e) charToDraw = charMap.l;
                         else if (n&&s&&w) charToDraw = charMap.r;

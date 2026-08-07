@@ -136,10 +136,8 @@ export async function renderTextToAnsiLayer(
     totalRows,
     { ...chafaConfig, fontRatio },
   );
-  console.log("[TextToANSI] Chafa output length:", ansi.length);
 
   const rawCells = await parseAnsiToCells(ansi, totalCols, totalRows);
-  console.log("[TextToANSI] Parsed cells length:", rawCells.length);
 
   const batch: { col: number; row: number; cell: Cell }[] = [];
   const startX = Math.floor(canvasState.width / 2 - totalCols / 2);
@@ -165,8 +163,6 @@ export async function renderTextToAnsiLayer(
       cell,
     });
   }
-
-  console.log("[TextToANSI] Final batch size before apply:", batch.length);
 
   if (batch.length > 0) {
     canvasState.addLayer(`Text: ${text.substring(0, 10)}`, false);
