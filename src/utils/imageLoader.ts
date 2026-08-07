@@ -1,7 +1,7 @@
 import Chafa from 'chafa-wasm';
 import { ChafaConfig } from './chafaDefaults';
 
-const chafaWasmUrl = '/chafa.wasm';
+const chafaWasmUrl = import.meta.env.BASE_URL + 'chafa.wasm';
 
 export async function convertImageToAnsi(
     buffer: ArrayBuffer, 
