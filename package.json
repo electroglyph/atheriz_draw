@@ -6,7 +6,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "vite build && gh-pages -d dist"
+    "deploy": "vite build && gh-pages -d dist",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",

@@ -63,7 +63,7 @@ export class GlyphScanner {
                 let chunkProcessed = 0;
 
                 while (chunkProcessed < CHUNK_SIZE && rangeIdx < this.VALID_RANGES.length) {
-                    const [start, end] = this.VALID_RANGES[rangeIdx];
+                    const [_start, end] = this.VALID_RANGES[rangeIdx];
                     
                     if (cp > end) {
                         rangeIdx++;

@@ -10,21 +10,21 @@ function readPackageJson(): any {
 
 describe('package.json scripts for typecheck and tests', () => {
   it('has a typecheck script that runs tsc --noEmit', () => {
-    const pkg = readPackage();
+    const pkg = readPackageJson();
     const script: string | undefined = pkg.scripts?.typecheck;
     expect(script, '"typecheck" script missing').toBeDefined();
     expect(script).toContain('tsc --noEmit');
   });
 
   it('has a test script so CI can run the suite', () => {
-    const pkg = readPackage();
+    const pkg = readPackageJson();
     expect(pkg.scripts?.test, '"test" script missing').toBeDefined();
   });
 });
 
 describe('package consistently uses ESM', () => {
   it('declares "type": "module" for consistent ESM usage', () => {
-    const pkg = readPackage();
+    const pkg = readPackageJson();
     expect(pkg.type).toBe('module');
   });
 });
