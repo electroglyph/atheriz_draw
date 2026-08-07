@@ -28,11 +28,3 @@ describe('package consistently uses ESM', () => {
     expect(pkg.type).toBe('module');
   });
 });
-
-describe('extract_glyphs.js runs under the package module format', () => {
-  it('does not use top-level ESM import under a CommonJS package', () => {
-    const src = readFileSync(join(root, 'scripts/extract_glyphs.js'), 'utf8');
-    // Package has no "type": "module", so bare `import` statements crash.
-    expect(src).not.toMatch(/^\s*import\s+/m);
-  });
-});
