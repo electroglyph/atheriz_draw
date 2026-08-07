@@ -209,11 +209,14 @@ export class CanvasState {
             const isBgLayer = (i === 0);
             const defaultBg = isBgLayer ? [0, 0, 0] : [-1, -1, -1];
 
-            const newCells = Array.from({ length: newHeight }, () =>
+            const newCells: Cell[][] = Array.from({ length: newHeight }, () =>
                 Array.from({ length: newWidth }, () => ({
                     char: '',
                     fg: [204, 204, 204] as [number, number, number],
-                    bg: defaultBg as [number, number, number]
+                    bg: defaultBg as [number, number, number],
+                    bold: false,
+                    italic: false,
+                    underline: false
                 }))
             );
 
