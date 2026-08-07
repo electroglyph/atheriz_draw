@@ -57,8 +57,8 @@ export class RotateTool implements Tool {
             if (tc.row > maxRow) maxRow = tc.row;
         }
 
-        const cx = (minCol + maxCol) / 2;
-        const cy = (minRow + maxRow) / 2;
+        const width = maxCol - minCol + 1;
+        const height = maxRow - minRow + 1;
 
         ctx.undoStack.push(ctx.state);
 
@@ -70,33 +70,33 @@ export class RotateTool implements Tool {
         const newTargetCells: { col: number, row: number, originCell: Cell }[] = [];
         const mappedSelection = new Set<string>();
 
-        // 2. Transform positions and characters
+        // 2. Transform positions and characters (in-place, anchored to bbox top-left)
         for (const tc of targetCells) {
-            let px = tc.col - cx;
-            let py = tc.row - cy;
-            let nx = px, ny = py;
+            const i = tc.col - minCol;
+            const j = tc.row - minRow;
+            let ni = i, nj = j;
             let newChar = tc.originCell.char;
 
             switch (mode) {
                 case 'cw90':
-                    nx = -py;
-                    ny = px;
+                    ni = height - 1 - j;
+                    nj = i;
                     break;
                 case 'ccw90':
-                    nx = py;
-                    ny = -px;
+                    ni = j;
+                    nj = width - 1 - i;
                     break;
                 case 'flip-h':
-                    nx = -px;
+                    ni = width - 1 - i;
                     break;
                 case 'flip-v':
-                    ny = -py;
+                    nj = height - 1 - j;
                     break;
             }
             newChar = transformCharacter(newChar, mode);
 
-            const finalCol = Math.round(nx + cx);
-            const finalRow = Math.round(ny + cy);
+            const finalCol = minCol + ni;
+            const finalRow = minRow + nj;
 
             newTargetCells.push({
                 col: finalCol,
