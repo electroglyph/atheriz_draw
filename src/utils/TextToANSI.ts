@@ -25,6 +25,10 @@ export function calculateGrid(
   return { cols: Math.min(cols, maxWidthGlyphs), rows };
 }
 
+export function previewFontString(cellFont: string, px = 96): string {
+  return `${px}px ${cellFont.replace(/^\d+(\.\d+)?px\s+/, '')}`;
+}
+
 /**
  * Pipeline to convert drawn text on a temporary Canvas into quantized ANSI art:
  * 1. Derives an exact bounding box isolating the text content.
@@ -47,7 +51,7 @@ export async function renderTextToAnsiLayer(
   const w = sourceCanvas.width;
   const h = sourceCanvas.height;
 
-  ctx.font = `${96}px "${cellMetrics.font.replace(/"/g, '')}"`;
+  ctx.font = previewFontString(cellMetrics.font);
   const textMetrics = ctx.measureText("M");
   const ascent = (textMetrics as any).actualBoundingBoxAscent ?? 80;
   const descent = (textMetrics as any).actualBoundingBoxDescent ?? 20;

@@ -1,56 +1,19 @@
-// @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
-import { renderTextToAnsiLayer } from '../src/utils/TextToANSI';
-import { CanvasState } from '../src/state/CanvasState';
-import { CellMetrics } from '../src/utils/fontMetrics';
+import { previewFontString } from '../src/utils/TextToANSI';
 
-function makeSourceCanvas(fontLog: string[]) {
-  const ctx: any = {
-    font: '',
-    measureText: () => ({ width: 50, actualBoundingBoxAscent: 40, actualBoundingBoxDescent: 12 }),
-    // All-zero pixels => scan finds no content and returns early (before chafa).
-    getImageData: () => ({ data: new Uint8ClampedArray(100 * 100 * 4) }),
-    fillStyle: '',
-    fillRect: () => {},
-  };
-  Object.defineProperty(ctx, 'font', {
-    get: () => fontLog[0] ?? '',
-    set: (v: string) => {
-      fontLog.splice(0, 1, v);
-    },
+describe('previewFontString builds a valid ctx.font', () => {
+  it('uses the preview size plus the family from a full font string', () => {
+    expect(previewFontString('18px "Unifont"')).toBe('96px "Unifont"');
+    expect(previewFontString('18px "Unifont"')).not.toMatch(/^96px "18px /);
   });
-  return {
-    width: 100,
-    height: 100,
-    getContext: () => ctx,
-  };
-}
 
-describe('TextToANSI font string is valid', () => {
-  it('sets a valid ctx.font that is not the mangled "96px 18px ..." form', async () => {
-    const fontLog: string[] = [];
-    const sourceCanvas: any = makeSourceCanvas(fontLog);
-    const state = new CanvasState(20, 20);
-
-    const cellMetrics: CellMetrics = {
-      width: 9,
-      height: 18,
-      baselineY: 14,
-      font: '18px "Unifont"',
-    };
-
-    await renderTextToAnsiLayer(
-      'hi',
-      10,
-      state,
-      {} as any,
-      sourceCanvas,
-      cellMetrics,
+  it('passes a multi-family list through without mangling', () => {
+    expect(previewFontString("18px 'Fira Code', 'FiraCode'")).toBe(
+      "96px 'Fira Code', 'FiraCode'",
     );
+  });
 
-    const requested = fontLog[0] ?? '';
-    // The proper font is a generic size + the family name (not "96px 18px Unifont").
-    expect(requested).not.toMatch(/^96px "18px /);
-    expect(requested).toMatch(/Unifont/);
+  it('leaves bare keywords intact', () => {
+    expect(previewFontString('22px monospace')).toBe('96px monospace');
   });
 });
