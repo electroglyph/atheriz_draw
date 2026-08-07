@@ -1,6 +1,6 @@
 import { Tool, ToolContext } from './Tool';
 import { Point, Cell, Color } from '../types';
-import { sampleGradient, lerpColor } from '../utils/colors';
+import { sampleGradient, lerpColor, cellEquals } from '../utils/colors';
 
 function luminance(c: Color): number {
     return (c[0] * 0.299 + c[1] * 0.587 + c[2] * 0.114) / 255;
@@ -13,7 +13,6 @@ export class GradientTool implements Tool {
     onMouseDown(ctx: ToolContext, cell: Point): void {
         this.anchor = cell;
         this.currentTarget = cell;
-        ctx.undoStack.push(ctx.state);
         this.renderPreview(ctx);
     }
 
@@ -30,7 +29,12 @@ export class GradientTool implements Tool {
         ctx.renderer.clearPreview();
         
         const updates = this.getGradientUpdates(ctx, this.anchor, this.currentTarget);
-        if (updates.length > 0) {
+        // Only record undo when at least one cell actually changes.
+        if (updates.some(u => {
+            const current = ctx.state.getCell(u.col, u.row);
+            return !current || !cellEquals(current, u.cell);
+        })) {
+            ctx.undoStack.push(ctx.state);
             ctx.state.applyBatch(updates);
         }
         

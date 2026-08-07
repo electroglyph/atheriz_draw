@@ -1,6 +1,7 @@
 import { Tool, ToolContext } from './Tool';
 import { Point, Cell } from '../types';
 import { LIGHT_BOX, ROUNDED_BOX, DOUBLE_BOX } from '../utils/characters';
+import { cellEquals } from '../utils/colors';
 
 export class RectangleTool implements Tool {
     private anchor: Point | null = null;
@@ -9,7 +10,6 @@ export class RectangleTool implements Tool {
     onMouseDown(ctx: ToolContext, cell: Point): void {
         this.anchor = cell;
         this.currentTarget = cell;
-        ctx.undoStack.push(ctx.state);
         this.renderPreview(ctx);
     }
 
@@ -23,10 +23,17 @@ export class RectangleTool implements Tool {
         if (!this.anchor) return;
         this.currentTarget = cell;
         
-        // Final commit applies to state
         const cells = this.getRectCells(ctx, this.anchor, this.currentTarget);
-        ctx.state.applyBatch(cells);
-        
+
+        // Only record undo when at least one cell actually changes.
+        if (cells.some(u => {
+            const current = ctx.state.getCell(u.col, u.row);
+            return !current || !cellEquals(current, u.cell);
+        })) {
+            ctx.undoStack.push(ctx.state);
+            ctx.state.applyBatch(cells);
+        }
+
         ctx.renderer.clearPreview();
         this.anchor = null;
         this.currentTarget = null;

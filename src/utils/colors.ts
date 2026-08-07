@@ -1,4 +1,4 @@
-import { Color } from '../types';
+import { Color, Cell } from '../types';
 
 export function rgbToHex(color: Color): string {
     const [r, g, b] = color;
@@ -17,6 +17,15 @@ export function hexToRgb(hex: string): Color {
 
 export function colorEquals(c1: Color, c2: Color): boolean {
     return c1[0] === c2[0] && c1[1] === c2[1] && c1[2] === c2[2];
+}
+
+export function cellEquals(a: Cell, b: Cell): boolean {
+    return a.char === b.char
+        && colorEquals(a.fg, b.fg)
+        && colorEquals(a.bg, b.bg)
+        && a.bold === b.bold
+        && a.italic === b.italic
+        && a.underline === b.underline;
 }
 
 export function cssColor(color: Color): string {
