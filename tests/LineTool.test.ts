@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { LineTool } from './LineTool';
-import { AppState, Point } from '../types';
-import { CanvasState } from '../state/CanvasState';
-import { UndoStack } from '../state/UndoStack';
-import { GridRenderer } from '../canvas/GridRenderer';
+import { LineTool } from '../src/tools/LineTool';
+import { AppState, Point } from '../src/types';
+import { CanvasState } from '../src/state/CanvasState';
+import { UndoStack } from '../src/state/UndoStack';
+import { GridRenderer } from '../src/canvas/GridRenderer';
 
 function mockCtx(overrides?: Partial<AppState>): any {
   const appState: AppState = {

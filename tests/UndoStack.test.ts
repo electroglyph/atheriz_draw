@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { UndoStack } from './UndoStack';
-import { CanvasState } from './CanvasState';
+import { UndoStack } from '../src/state/UndoStack';
+import { CanvasState } from '../src/state/CanvasState';
 
 describe('UndoStack', () => {
     it('manages undo and redo correctly by returning the clone to the caller', () => {

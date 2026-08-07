@@ -5,11 +5,12 @@ import { getLinePoints } from '../utils/geometry';
 export class EraserTool implements Tool {
     private erasedCells: Set<string> = new Set();
     
-    private getEraserCell(): Cell {
+    private getEraserCell(ctx: ToolContext): Cell {
+        const isBackgroundLayer = ctx.state.activeLayerIndex === 0;
         return {
             char: '',
             fg: [204, 204, 204], // default fg
-            bg: [0, 0, 0]        // black bg
+            bg: isBackgroundLayer ? [0, 0, 0] : [-1, -1, -1]
         };
     }
 
@@ -17,13 +18,13 @@ export class EraserTool implements Tool {
         this.erasedCells.clear();
         ctx.undoStack.push(ctx.state);
         
-        ctx.state.setCell(cell.x, cell.y, this.getEraserCell());
+        ctx.state.setCell(cell.x, cell.y, this.getEraserCell(ctx));
         this.erasedCells.add(`${cell.x},${cell.y}`);
     }
 
     onDrag(ctx: ToolContext, from: Point, to: Point): void {
         const points = getLinePoints(from, to);
-        const cellData = this.getEraserCell();
+        const cellData = this.getEraserCell(ctx);
         const updates: {col: number, row: number, cell: Cell}[] = [];
         
         for (const p of points) {
@@ -48,7 +49,7 @@ export class EraserTool implements Tool {
         ctx.renderer.setPreview([{
             col: cell.x,
             row: cell.y,
-            cell: this.getEraserCell()
+            cell: this.getEraserCell(ctx)
         }]);
     }
 
