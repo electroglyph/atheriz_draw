@@ -1,13 +1,14 @@
 import { defineConfig } from 'vite';
-import { viteSingleFile } from 'vite-plugin-singlefile';
-import path from 'path';
+import path from 'node:path';
 
 export default defineConfig({
-  base: '/atheriz_draw/',
-  plugins: [viteSingleFile()],
+  // Both pages are mounted below the AtheriZ static root. Shared absolute
+  // assets keep /webclient/ and /atheriz_draw/ compatible with one build.
+  base: '/',
   resolve: {
     alias: {
-      '@xterm/headless': path.resolve(__dirname, 'node_modules/@xterm/headless/lib-headless/xterm-headless.mjs'),
+      '@xterm/headless': path.resolve(import.meta.dirname, 'node_modules/@xterm/headless/lib-headless/xterm-headless.mjs'),
+      'node:module': path.resolve(import.meta.dirname, 'src/shims/node-module.ts'),
     },
   },
   optimizeDeps: {
@@ -15,6 +16,11 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    assetsInlineLimit: 100_000_000,
+    rollupOptions: {
+      input: {
+        draw: path.resolve(import.meta.dirname, 'index.html'),
+        webclient: path.resolve(import.meta.dirname, 'webclient/index.html'),
+      },
+    },
   },
 });
